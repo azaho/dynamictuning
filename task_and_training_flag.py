@@ -285,8 +285,8 @@ class Model(torch.nn.Module):
         # Sussillo et al. 2015 "A neural network that finds a naturalistic solution for the production of muscle activity"
         W_x_ah = torch.randn(dim_recurrent, dim_input) / np.sqrt(dim_input)
         W_h_y = torch.zeros(dim_output, dim_recurrent)
-        self.fc_x2ah.bias = torch.nn.Parameter(torch.squeeze(b_ah))
-        self.fc_h2y.bias = torch.nn.Parameter(torch.squeeze(b_y))
+        if model_parameters["input_bias"]: self.fc_x2ah.bias = torch.nn.Parameter(torch.squeeze(b_ah))
+        if model_parameters["output_bias"]: self.fc_h2y.bias = torch.nn.Parameter(torch.squeeze(b_y))
         self.fc_x2ah.weight = torch.nn.Parameter(W_x_ah)  # W_x_ah @ x + b_ah
         self.fc_h2ah.weight = torch.nn.Parameter(W_h_ah)  # W_h_ah @ h
         self.fc_h2y.weight = torch.nn.Parameter(W_h_y)  # y = W_h_y @ h + b_y
