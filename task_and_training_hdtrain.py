@@ -3,10 +3,13 @@ import hashlib, torch, math, pathlib, shutil, sys
 import numpy as np
 from torch import nn
 
+# PARSER START
 parser = argparse.ArgumentParser(description='Train networks')
 parser.add_argument('--net_size', type=int, help='size of input layer and recurrent layer', default=50)
 parser.add_argument('--random', type=str, help='human-readable string used for random initialization', default="AA")
+parser.add_argument('--init', type=str, help='which solution to initialize from?', default="none")
 args = parser.parse_args()
+# PARSER END
 
 verbose = True  # print info in console?
 
@@ -296,20 +299,21 @@ class Model(torch.nn.Module):
         W_x_ah = torch.randn(dim_recurrent, dim_input) / np.sqrt(dim_input)
         W_h_y = torch.zeros(dim_output, dim_recurrent)
 
-        # initialize form hdrchange network (not trained):
-        self.IN_pref = torch.arange(task_parameters["input_orientation_units"])/task_parameters["input_orientation_units"]*180
-        self.R1_pref_changes = torch.tensor(R1_pref_changes)
-        self.R1_i = R1_i
-        self.R1_pref = R1_pref
-        # build matrices based on top-level parameters
-        # local-excitation, global-inhibition function to use for the pattern
-        # pref1 and pref2 are preferred orientations between the units, in degrees
-        def _legi(pref1, pref2):
-            return torch.cos((pref1 - pref2) / 180 * torch.pi * 2)
-        W_h_ah = _legi(self.R1_pref.repeat(len(self.R1_pref), 1), self.R1_pref.repeat(len(self.R1_pref), 1).T) * 0.2
-        W_x_ah = _legi((self.R1_pref + self.R1_pref_changes).repeat(task_parameters["input_orientation_units"], 1).T, self.IN_pref.repeat(len(R1_pref), 1)) * 0.2
-        W_x_ah = torch.cat((W_x_ah, torch.zeros(len(R1_pref)).unsqueeze(1)), 1)  # go cue has zero weights
-        b_ah = torch.ones_like(b_ah) * (-0.1)
+        if args.init == "rchange":
+            # initialize form hdrchange network (not trained):
+            self.IN_pref = torch.arange(task_parameters["input_orientation_units"])/task_parameters["input_orientation_units"]*180
+            self.R1_pref_changes = torch.tensor(R1_pref_changes)
+            self.R1_i = R1_i
+            self.R1_pref = R1_pref
+            # build matrices based on top-level parameters
+            # local-excitation, global-inhibition function to use for the pattern
+            # pref1 and pref2 are preferred orientations between the units, in degrees
+            def _legi(pref1, pref2):
+                return torch.cos((pref1 - pref2) / 180 * torch.pi * 2)
+            W_h_ah = _legi(self.R1_pref.repeat(len(self.R1_pref), 1), self.R1_pref.repeat(len(self.R1_pref), 1).T) * 0.2
+            W_x_ah = _legi((self.R1_pref + self.R1_pref_changes).repeat(task_parameters["input_orientation_units"], 1).T, self.IN_pref.repeat(len(R1_pref), 1)) * 0.2
+            W_x_ah = torch.cat((W_x_ah, torch.zeros(len(R1_pref)).unsqueeze(1)), 1)  # go cue has zero weights
+            b_ah = torch.ones_like(b_ah) * (-0.1)
 
         if model_parameters["input_bias"]: self.fc_x2ah.bias = torch.nn.Parameter(torch.squeeze(b_ah))
         if model_parameters["output_bias"]: self.fc_h2y.bias = torch.nn.Parameter(torch.squeeze(b_y))
@@ -518,3 +522,19 @@ if __name__ == "__main__":
     # copy this script, analysis ipynb, and util script into the same directory
     # for easy importing in the jupyter notebook
     shutil.copy(sys.argv[0], directory + "task_and_training.py")
+
+    # replace parsed args with their values in the copied file (for analysis)
+    with open(directory + "task_and_training.py", "r+") as f:
+        data = f.read()
+        parser_start = data.index("# PARSER START")
+        parser_end = data.index("# PARSER END")
+        data = data[0:parser_start:] + data[parser_end::]
+        for arg in vars(args):
+            replace = f"args.{arg}"
+            replaceWith = f"{getattr(args, arg)}"
+            if type(getattr(args, arg))==str:
+                replaceWith = '"' + replaceWith + '"'
+            data = data.replace(replace, replaceWith)
+        f.seek(0)
+        f.write(data)
+        f.truncate()

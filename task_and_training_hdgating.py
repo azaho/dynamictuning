@@ -4,10 +4,12 @@ import numpy as np
 from torch import nn
 import matplotlib.pyplot as plt
 
+# PARSER START
 parser = argparse.ArgumentParser(description='Train networks')
 parser.add_argument('--net_size', type=int, help='size of input layer and recurrent layer', default=50)
 parser.add_argument('--random', type=str, help='human-readable string used for random initialization', default="AA")
 args = parser.parse_args()
+# PARSER END
 
 verbose = True  # print info in console?
 
@@ -310,8 +312,8 @@ class Model(torch.nn.Module):
         self.fc_h2y.weight = torch.nn.Parameter(self.W_h_y)
         # TRAINABLE PARAMETERS:
         # 1: input-DT, DT-R1, R1-R1 curve magnitude
-        # 4: R1 bias, DT bias
-        # 6: R1-DT nonspecific connection magnitude
+        # 2: R1 bias and DT bias
+        # 3: R1-DT nonspecific connection magnitude
         self.top_parameters = nn.Parameter(torch.tensor([0.3, -0.05, -0.05]))
 
     # output y and recurrent unit activations for all trial timesteps
@@ -534,3 +536,20 @@ if __name__ == "__main__":
     # copy this script, analysis ipynb, and util script into the same directory
     # for easy importing in the jupyter notebook
     shutil.copy(sys.argv[0], directory+"task_and_training.py")
+
+    # replace parsed args with their values in the copied file (for analysis)
+    with open(directory + "task_and_training.py", "r+") as f:
+        data = f.read()
+        parser_start = data.index("# PARSER START")
+        parser_end = data.index("# PARSER END")
+        data = data[0:parser_start:] + data[parser_end::]
+        for arg in vars(args):
+            replace = f"args.{arg}"
+            replaceWith = f"{getattr(args, arg)}"
+            if type(getattr(args, arg))==str:
+                replaceWith = '"' + replaceWith + '"'
+            data = data.replace(replace, replaceWith)
+        f.seek(0)
+        f.write(data)
+        f.truncate()
+
