@@ -6,7 +6,6 @@ from torch import nn
 parser = argparse.ArgumentParser(description='Train networks')
 parser.add_argument('--net_size', type=int, help='size of input layer and recurrent layer', default=50)
 parser.add_argument('--random', type=str, help='human-readable string used for random initialization', default="AA")
-parser.add_argument('--magnitude_factor', type=float, help='between input-R1 and R1-R1 connectivity pattern magnitudes', default=1)
 args = parser.parse_args()
 
 verbose = True  # print info in console?

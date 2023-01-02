@@ -68,6 +68,7 @@ additional_comments = [
 directory = "data/"
 directory += f"{model_parameters['model_name']}_{task_parameters['task_name']}"
 directory += f"_dr{model_parameters['dim_recurrent']}_n{hyperparameters['noise_amplitude']}"
+directory += f"_mf{model_parameters['magnitude_factor']}"
 directory += f"_r{hyperparameters['random_string']}"
 #directory += "_sn"
 directory += "/"  # needs to end with a slash
