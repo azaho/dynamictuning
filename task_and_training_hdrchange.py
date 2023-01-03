@@ -21,8 +21,8 @@ hyperparameters = {
     "random_string": args.random,  # human-readable string used for random initialization (for reproducibility)
     "noise_amplitude": 0.1,  # normal noise with s.d. = noise_amplitude
     "optimizer": "Adam",  # options: Adam
-    "train_for_steps": 100000,
-    "save_network_every_steps": 10000,
+    "train_for_steps": 10000,
+    "save_network_every_steps": 1000,
     "note_error_every_steps": 100,  # only relevant if verbose is True
     "clip_gradients": True,  # limit gradient size (allows the network to train for a long time without diverging)
     "max_gradient_norm": 10,
