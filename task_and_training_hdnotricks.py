@@ -17,7 +17,7 @@ net_size = args.net_size  # size of input layer and recurrent layer
 hyperparameters = {
     "batch_size": 96,
     "learning_rate": 1e-3,
-    "random_string": args.random,  # human-readable string used for random initialization (for reproducibility)
+    "random_string": str(args.random),  # human-readable string used for random initialization (for reproducibility)
     "noise_amplitude": 0.1,  # normal noise with s.d. = noise_amplitude
     "optimizer": "Adam",  # options: Adam
     "train_for_steps": 10000,
