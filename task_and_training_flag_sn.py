@@ -20,7 +20,7 @@ hyperparameters = {
     "regularization_lambda": 1e-4,
     "use_cuda_if_available": False
 }
-hyperparameters["random_seed"] = abs(hash(hyperparameters["random_string"])) % 10**8  # random initialization seed (for reproducibility)
+hyperparameters["random_seed"] = int(hashlib.sha1(hyperparameters["random_string"].encode("utf-8")).hexdigest(), 16) % 10**8  # random initialization seed (for reproducibility)
 if hyperparameters["regularization"] is None or hyperparameters["regularization"].lower() == "none":
     hyperparameters["regularization_lambda"] = 0
     hyperparameters["regularization"] = "None"

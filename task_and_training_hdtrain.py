@@ -17,20 +17,20 @@ net_size = args.net_size  # size of input layer and recurrent layer
 
 hyperparameters = {
     "batch_size": 96,
-    "learning_rate": 1e-3,
+    "learning_rate": 1e-2,
     "random_string": args.random,  # human-readable string used for random initialization (for reproducibility)
     "noise_amplitude": 0.1,  # normal noise with s.d. = noise_amplitude
     "optimizer": "Adam",  # options: Adam
-    "train_for_steps": 100000,
+    "train_for_steps": 10000,
     "save_network_every_steps": 10000,
     "note_error_every_steps": 100,  # only relevant if verbose is True
     "clip_gradients": True,  # limit gradient size (allows the network to train for a long time without diverging)
     "max_gradient_norm": 10,
     "regularization": "None",  # options: L1, L2, None
-    "regularization_lambda": 1e-2,
+    "regularization_lambda": 1e-4,
     "use_cuda_if_available": False
 }
-hyperparameters["random_seed"] = abs(hash(hyperparameters["random_string"])) % 10**8  # random initialization seed (for reproducibility)
+hyperparameters["random_seed"] = int(hashlib.sha1(hyperparameters["random_string"].encode("utf-8")).hexdigest(), 16) % 10**8  # random initialization seed (for reproducibility)
 if hyperparameters["regularization"] is None or hyperparameters["regularization"].lower() == "none":
     hyperparameters["regularization_lambda"] = 0
     hyperparameters["regularization"] = "None"
@@ -74,13 +74,14 @@ directory += f"_r{hyperparameters['random_string']}"
 #directory += "_sn"
 directory += "/"  # needs to end with a slash
 
-R1_i = torch.arange(model_parameters["dim_recurrent"])
-R1_pref = R1_i/model_parameters["dim_recurrent"]*180
-R1_pref_changes = [random.randint(-60, 60) for _ in R1_i]
-
+torch.use_deterministic_algorithms(True)
 random.seed(hyperparameters["random_seed"])
 torch.manual_seed(hyperparameters["random_seed"])
 np.random.seed(hyperparameters["random_seed"])
+
+R1_i = torch.arange(model_parameters["dim_recurrent"])
+R1_pref = R1_i/model_parameters["dim_recurrent"]*180
+R1_pref_changes = [random.randint(-60, 60) for _ in R1_i]
 
 class Task:
     # outputs mask defining which timesteps noise should be applied to

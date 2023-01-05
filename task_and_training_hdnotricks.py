@@ -21,7 +21,7 @@ hyperparameters = {
     "noise_amplitude": 0.1,  # normal noise with s.d. = noise_amplitude
     "optimizer": "Adam",  # options: Adam
     "train_for_steps": 10000,
-    "save_network_every_steps": 1000,
+    "save_network_every_steps": 10000,
     "note_error_every_steps": 100,  # only relevant if verbose is True
     "clip_gradients": True,  # limit gradient size (allows the network to train for a long time without diverging)
     "max_gradient_norm": 10,
@@ -29,7 +29,7 @@ hyperparameters = {
     "regularization_lambda": 1e-2,
     "use_cuda_if_available": False
 }
-hyperparameters["random_seed"] = abs(hash(hyperparameters["random_string"])) % 10**8  # random initialization seed (for reproducibility)
+hyperparameters["random_seed"] = int(hashlib.sha1(hyperparameters["random_string"].encode("utf-8")).hexdigest(), 16) % 10**8  # random initialization seed (for reproducibility)
 if hyperparameters["regularization"] is None or hyperparameters["regularization"].lower() == "none" or hyperparameters["regularization_lambda"] == 0:
     hyperparameters["regularization_lambda"] = 0
     hyperparameters["regularization"] = "None"
@@ -72,13 +72,13 @@ directory += f"_r{hyperparameters['random_string']}"
 #directory += "_sn"
 directory += "/"  # needs to end with a slash
 
-random.seed(1)
-R1_i = torch.arange(model_parameters["dim_recurrent"])
-R1_pref = R1_i/model_parameters["dim_recurrent"]*180
-
+torch.use_deterministic_algorithms(True)
 random.seed(hyperparameters["random_seed"])
 torch.manual_seed(hyperparameters["random_seed"])
 np.random.seed(hyperparameters["random_seed"])
+
+R1_i = torch.arange(model_parameters["dim_recurrent"])
+R1_pref = R1_i/model_parameters["dim_recurrent"]*180
 
 class Task:
     # outputs mask defining which timesteps noise should be applied to
