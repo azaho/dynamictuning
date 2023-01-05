@@ -83,8 +83,6 @@ np.random.seed(hyperparameters["random_seed"])
 R1_i = torch.arange(model_parameters["dim_recurrent"])
 R1_pref = R1_i/model_parameters["dim_recurrent"]*180
 R1_pref_changes = [random.randint(-model_parameters["shift_amount"], model_parameters["shift_amount"]) for _ in R1_i]
-print(R1_pref_changes)
-exit()
 
 class Task:
     # outputs mask defining which timesteps noise should be applied to
