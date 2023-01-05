@@ -21,8 +21,8 @@ hyperparameters = {
     "random_string": args.random,  # human-readable string used for random initialization (for reproducibility)
     "noise_amplitude": 0.1,  # normal noise with s.d. = noise_amplitude
     "optimizer": "Adam",  # options: Adam
-    "train_for_steps": 1000,
-    "save_network_every_steps": 1000,
+    "train_for_steps": 10000,
+    "save_network_every_steps": 10000,
     "note_error_every_steps": 100,  # only relevant if verbose is True
     "clip_gradients": True,  # limit gradient size (allows the network to train for a long time without diverging)
     "max_gradient_norm": 10,
@@ -530,6 +530,11 @@ if __name__ == "__main__":
     # copy this script, analysis ipynb, and util script into the same directory
     # for easy importing in the jupyter notebook
     shutil.copy(sys.argv[0], directory + "task_and_training.py")
+    # copy the analysis notebook
+    if "flag" in sys.argv[0]:
+        shutil.copy("analysis_and_figures_flag.ipynb", directory + "analysis_and_figures.ipynb")
+    else:
+        shutil.copy("analysis_and_figures.ipynb", directory + "analysis_and_figures.ipynb")
 
     # replace parsed args with their values in the copied file (for analysis)
     with open(directory + "task_and_training.py", "r+") as f:

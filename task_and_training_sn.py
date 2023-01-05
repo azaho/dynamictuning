@@ -457,5 +457,10 @@ if __name__ == "__main__":
     # copy this script, analysis ipynb, and util script into the same directory
     # for easy importing in the jupyter notebook
     shutil.copy(sys.argv[0], directory+"task_and_training.py")
+    # copy the analysis notebook
+    if "flag" in sys.argv[0]:
+        shutil.copy("analysis_and_figures_flag.ipynb", directory + "analysis_and_figures.ipynb")
+    else:
+        shutil.copy("analysis_and_figures.ipynb", directory + "analysis_and_figures.ipynb")
 
 
