@@ -434,6 +434,7 @@ def train_network(model):
             best_network_error = error.item()
             save_network(model, directory + f'model_best.pth')
             mse_o1_b, mse_o2_b, err_o1_b, err_o2_b = Task.evaluate_model(model)
+            mse_o1_bn, mse_o2_bn, err_o1_bn, err_o2_bn = Task.evaluate_model(model, noise_amplitude=hyperparameters["noise_amplitude"])
             last_time = time.time()  # for estimating how long training will take
             continue
         # Before the backward pass, use the optimizer object to zero all of the
@@ -459,22 +460,25 @@ def train_network(model):
         gradient_norm_store[p] = np.sqrt(np.sum(gradient ** 2)).item()
         # note running error in console
         if verbose and np.isin(p, set_note_error):
-            error_wo_reg = torch.sum((output[output_mask == 1] - target[output_mask == 1]) ** 2) / torch.sum(output_mask == 1)
-            print(f'{p} parameter updates: error = {error.item():.4g}, w/o reg {error_wo_reg.item():.4g}, o1 {error_o1:.4g}, o2 {error_o2:.4g}')
+            error_wo_reg = torch.sum((output[output_mask == 1] - target[output_mask == 1]) ** 2) / torch.sum(
+                output_mask == 1)
+            print(
+                f'{p} parameter updates: error = {error.item():.4g}, w/o reg {error_wo_reg.item():.4g}, o1 {error_o1:.4g}, o2 {error_o2:.4g}')
             passed_time = time.time() - last_time
             made_steps = hyperparameters["note_error_every_steps"]
-            left_steps = max_steps-p
+            left_steps = max_steps - p
             left_time = left_steps / made_steps * passed_time
-            print(f" = took {int(passed_time)}s for {made_steps} steps, estimated time left {str(datetime.timedelta(seconds=int(left_time)))}")
+            print(
+                f" = took {int(passed_time)}s for {made_steps} steps, estimated time left {str(datetime.timedelta(seconds=int(left_time)))}")
             last_time = time.time()
             print(" = top parameters: ", model.top_parameters.data)
             mse_o1, mse_o2, err_o1, err_o2 = Task.evaluate_model(model)
             print(" = performance: ", (mse_o1, mse_o2, err_o1, err_o2))
-            if err_o1 < err_o1_b or math.isnan(err_o1_b):
-                best_network_error = 10**8  # to update the best network
+            if (err_o1 < err_o1_b) or math.isnan(err_o1_b):
+                best_network_error = 10 ** 8  # to update the best network
                 print(" = best so far: ", (mse_o1, mse_o2, err_o1, err_o2))
             else:
-                print(" = best so far: ", (mse_o1_b, mse_o2_b, err_o1_b, err_o2_b))
+                print(" = best so far: ", (mse_o1_b, mse_o2_b, err_o1_b, err_o2_b, mse_o1_bn, mse_o2_bn, err_o1_bn, err_o2_bn))
         # save network
         if np.isin(p, set_save_network):
             print("SAVING", f'model_parameterupdate{p}.pth')
@@ -486,13 +490,14 @@ def train_network(model):
                 best_network_error = error.item()
                 save_network(model, directory + f'model_best.pth')
                 mse_o1_b, mse_o2_b, err_o1_b, err_o2_b = Task.evaluate_model(model)
+                mse_o1_bn, mse_o2_bn, err_o1_bn, err_o2_bn = Task.evaluate_model(model, noise_amplitude=hyperparameters["noise_amplitude"])
 
     result = {
         "error_store": error_store,
         "error_store_o1": error_store_o1,
         "error_store_o2": error_store_o2,
         "gradient_norm_store": gradient_norm_store,
-        "errors": [mse_o1, mse_o2, err_o1, err_o2, mse_o1_b, mse_o2_b, err_o1_b, err_o2_b]
+        "errors": [mse_o1, mse_o2, err_o1, err_o2, mse_o1_b, mse_o2_b, err_o1_b, err_o2_b, mse_o1_bn, mse_o2_bn, err_o1_bn, err_o2_bn]
     }
     return result
 
