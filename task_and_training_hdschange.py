@@ -250,11 +250,15 @@ class Task:
         angle_error_o2 = torch.mean(error_o2).item() ** 0.5
         return mse_o1, mse_o2, angle_error_o1, angle_error_o2
 
-    # evaluate MSE and angle errors based on median delays, from the all integer orientation batch
+    # evaluate MSE and angle errors based on median delays, from the all integer orientation batch (if random_ori false)
+    # or from the same number of random trials (if random_ori true)
     @staticmethod
-    def evaluate_model(model, noise_amplitude=0, orientation_resolution=6):
+    def evaluate_model(model, noise_amplitude=0, orientation_resolution=6, random_ori=False):
         # run the model on all possible orientations
-        ao_input, ao_target, ao_mask = Task.make_all_integer_orientations_batch(*Task.get_median_delays(), orientation_resolution)
+        if random_ori:
+            ao_input, ao_target, ao_mask = Task.make_random_orientations_batch((180//orientation_resolution)**2, *Task.get_median_delays())
+        else:
+            ao_input, ao_target, ao_mask = Task.make_all_integer_orientations_batch(*Task.get_median_delays(), orientation_resolution)
         ao_noise_mask = Task.get_noise_mask(*Task.get_median_delays())
         ao_noise_mask = ao_noise_mask.repeat(ao_input.shape[0], 1).unsqueeze(2).repeat(1, 1, model.dim_recurrent)  # convert to (batch_size, total_time, dim_recurrent)
         ao_noise = torch.randn_like(ao_noise_mask) * ao_noise_mask * noise_amplitude
@@ -465,23 +469,17 @@ def train_network(model):
             print(" = top parameters: ", model.top_parameters.data)
             mse_o1, mse_o2, err_o1, err_o2 = Task.evaluate_model(model)
             print(" = performance: ", (mse_o1, mse_o2, err_o1, err_o2))
-            if (err_o1 < err_o1_b) or math.isnan(err_o1_b):
-                best_network_error = 10 ** 8  # to update the best network
-                print(" = best so far: ", (mse_o1, mse_o2, err_o1, err_o2))
-            else:
-                print(" = best so far: ", (mse_o1_b, mse_o2_b, err_o1_b, err_o2_b, mse_o1_bn, mse_o2_bn, err_o1_bn, err_o2_bn))
+            print(" = best so far: ", (mse_o1_b, mse_o2_b, err_o1_b, err_o2_b, mse_o1_bn, mse_o2_bn, err_o1_bn, err_o2_bn))
         # save network
         if np.isin(p, set_save_network):
             print("SAVING", f'model_parameterupdate{p}.pth')
             save_network(model, directory + f'model_parameterupdate{p}.pth')
         if error.item() < best_network_error:
-            mse_o1, mse_o2, err_o1, err_o2 = Task.evaluate_model(model)
-            if err_o1 < err_o1_b or math.isnan(err_o1_b) or mse_o1<mse_o1_b/1.5:  # only save new best if the <test> error is actually smaller, or if training error is significantly lower
-                best_network_dict = model.state_dict()
-                best_network_error = error.item()
-                save_network(model, directory + f'model_best.pth')
-                mse_o1_b, mse_o2_b, err_o1_b, err_o2_b = Task.evaluate_model(model)
-                mse_o1_bn, mse_o2_bn, err_o1_bn, err_o2_bn = Task.evaluate_model(model, noise_amplitude=hyperparameters["noise_amplitude"])
+            best_network_dict = model.state_dict()
+            best_network_error = error.item()
+            save_network(model, directory + f'model_best.pth')
+            mse_o1_b, mse_o2_b, err_o1_b, err_o2_b = Task.evaluate_model(model)
+            mse_o1_bn, mse_o2_bn, err_o1_bn, err_o2_bn = Task.evaluate_model(model, noise_amplitude=hyperparameters["noise_amplitude"])
 
     result = {
         "error_store": error_store,
