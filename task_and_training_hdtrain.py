@@ -29,7 +29,7 @@ hyperparameters = {
     "max_gradient_norm": 10,
     "regularization": "L2",  # options: L1, L2, None
     "regularization_lambda": 1e-4,
-    "use_cuda_if_available": False
+    "use_cuda_if_available": True
 }
 hyperparameters["random_seed"] = int(hashlib.sha1(hyperparameters["random_string"].encode("utf-8")).hexdigest(), 16) % 10**8  # random initialization seed (for reproducibility)
 if hyperparameters["regularization"] is None or hyperparameters["regularization"].lower() == "none":
