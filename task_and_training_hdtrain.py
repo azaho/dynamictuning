@@ -75,7 +75,7 @@ directory += f"_r{hyperparameters['random_string']}"
 #directory += "_sn"
 directory += "/"  # needs to end with a slash
 
-torch.use_deterministic_algorithms(True)
+#torch.use_deterministic_algorithms(True)
 random.seed(hyperparameters["random_seed"])
 torch.manual_seed(hyperparameters["random_seed"])
 np.random.seed(hyperparameters["random_seed"])
